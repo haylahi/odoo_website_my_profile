@@ -1,0 +1,54 @@
+<odoo>
+    <data>
+        <!-- <template id="my_profile_details" inherit_id="website_portal.my_account_link" name="Link to profile details">
+            <xpath expr="//li[@id='o_logout']" position="before">
+                <li>
+                    <a href="/my/profile" role="menuitem">My Profiles</a>
+                </li>
+            </xpath>
+        </template> -->
+        <template id="add_more_details" inherit_id="website_portal.details">
+            <xpath expr="//div[contains(label, 'Company Name')]" position="replace">
+            </xpath>
+            <xpath expr="//div[@t-if='has_check_vat']" position="replace">
+            </xpath>
+            <xpath expr="//div[contains(label, 'Zip')]" position="replace">
+            </xpath>
+            <xpath expr="//div[contains(label, 'Phone')]" position="after">
+                <div t-attf-class="form-group #{error.get('birthday') and 'has-error' or ''} col-lg-6">
+                    <label class="control-label" for="birthday">Birthday</label>
+                    <input type="date" name="birthday" class="form-control" t-att-value="birthday or partner.birthday" />
+                </div>
+                <div t-attf-class="form-group #{error.get('gender') and 'has-error' or ''} col-lg-6">
+                    <label class="control-label" for="gender">Gender</label>
+                    <select name="gender" class="form-control">
+                        <!-- <option value="">Gender...</option> -->
+                        <t t-foreach="genders or []" t-as="gender">
+                            <!-- <option t-att-value="gender.id" t-att-selected="gender.id == partner.gender_id.id">
+                                <t t-esc="gender.name" />
+                            </option> -->
+                            <option t-att-value="gender" t-att-selected="gender == partner.gender">
+                                <t t-esc="gender" />
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div t-attf-class="form-group #{error.get('active') and 'has-error' or ''} col-lg-6">
+                    <label class="control-label" for="active">Active</label>
+                    <input type="text" name="active" class="form-control" t-att-value="active or partner.active" readonly="readonly" />
+                </div>
+            </xpath>
+            <xpath expr="//button" position="after">
+                <a id="link_reset" href="/web/reset_password?reset_directly=directly" class="btn btn-default btn-primary pull-left">Change Password</a>
+            </xpath>
+        </template>
+        <template id="add_more_fields_signup" inherit_id="auth_signup.fields">
+            <xpath expr="//div[contains(label, 'Your Name')]" position="after">
+                <div class="form-group field-birthday">
+                    <label for="name" class="control-label">Your Birthday</label>
+                    <input type="date" name="birthday" t-att-value="birthday" id="birthday" class="form-control" required="required" t-att-readonly="'readonly' if only_passwords else None" t-att-autofocus="'autofocus' if login and not only_passwords else None" />
+                </div>
+            </xpath>
+        </template>
+    </data>
+</odoo>

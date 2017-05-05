@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <record model="hr.employee.gender" id="gender1">
+            <field name="name">Male</field>
+            <field name="gender">Male</field>
+        </record>
+        <record model="hr.employee.gender" id="gender2">
+            <field name="name">Female</field>
+            <field name="gender">Female</field>
+        </record>
+        <record model="hr.employee.gender" id="gender3">
+            <field name="name">Unknow</field>
+            <field name="gender">Unknow</field>
+        </record>
+    </data>
+</odoo>
