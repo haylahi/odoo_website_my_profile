@@ -56,7 +56,6 @@ class MyProfile(website_account):
 
         return request.render("website_portal.details", values)
 
-
 class ResetPassword(AuthSignupHome):
 
     @http.route('/web/reset_password', type='http', auth='public', website=True)
@@ -72,7 +71,7 @@ class ResetPassword(AuthSignupHome):
                 [('id', '=', request.session.uid)])
             login = user.login
             if not login:
-                login = 'empty'
+                login = 'not_empty'
             assert login, "No login provided."
             user = request.env['res.users'].search(
                 [('login', '=', login)])

@@ -12,5 +12,8 @@
             <field name="name">Unknow</field>
             <field name="gender">Unknow</field>
         </record>
+        <!-- <record id="change_value_of_base_config" inherit_id="base_setup.view_general_configuration">
+            <xpath
+        </record> -->
     </data>
 </odoo>
