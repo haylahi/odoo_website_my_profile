@@ -12,59 +12,29 @@ _logger = logging.getLogger(__name__)
 
 
 class MyProfile(website_account):
-    MANDATORY_BILLING_FIELDS = ["name", "phone", "email",
-                                "street", "city", "country_id", "birthday"]
-    OPTIONAL_BILLING_FIELDS = ["zipcode",
-                               "state_id", "vat", "company_name", "active", "gender"]
 
-    @http.route(['/my/account'], type='http', auth='user', website=True)
+    @http.route()
     def details(self, redirect=None, **post):
-        partner = request.env.user.partner_id
-        values = {
-            'error': {},
-            'error_message': []
-        }
-
-        if post:
-            error, error_message = self.details_form_validate(post)
-            values.update({'error': error, 'error_message': error_message})
-            values.update(post)
-            if not error:
-                values = {key: post[key]
-                          for key in self.MANDATORY_BILLING_FIELDS}
-                values.update(
-                    {key: post[key] for key in self.OPTIONAL_BILLING_FIELDS if key in post})
-                values.update({'zip': values.pop('zipcode', '')})
-                partner.sudo().write(values)
-                if redirect:
-                    return request.redirect(redirect)
-                return request.redirect('/my/home')
-
-        countries = request.env['res.country'].sudo().search([])
-        states = request.env['res.country.state'].sudo().search([])
-        # genders = request.env['hr.employee.gender'].sudo().search([])
+        result = super(MyProfile, self).details(redirect, **post)
+        self.MANDATORY_BILLING_FIELDS.append('birthday')
+        self.OPTIONAL_BILLING_FIELDS.extend(['active', 'gender'])
         genders = request.env['res.partner'].get_value_gender()
+        # all value put in render function will becomes value of qcontext
+        # see odoo.addons.website_portal.controllers.main in details function
+        # values variable (type: dictionary) to be puted to render function
+        # and all of that will be values of qcontext - awesome
+        qcontext = result.qcontext
+        qcontext['genders'] = genders
+        return result
 
-        values.update({
-            'partner': partner,
-            'countries': countries,
-            'states': states,
-            'has_check_vat': hasattr(request.env['res.partner'], 'check_vat'),
-            'genders': genders,
-            'redirect': redirect,
-        })
-
-        return request.render("website_portal.details", values)
 
 class ResetPassword(AuthSignupHome):
 
-    @http.route('/web/reset_password', type='http', auth='public', website=True)
+    @http.route()
     def web_auth_reset_password(self, *args, **kw):
-        qcontext = self.get_auth_signup_qcontext()
-
-        if not qcontext.get('token') and not qcontext.get('reset_password_enabled'):
-            raise werkzeug.exceptions.NotFound()
-
+        result = super(ResetPassword, self).web_auth_reset_password(
+            *args, **kw)
+        qcontext = result.qcontext
         # get parameter in url
         if 'error' not in qcontext and 'reset_directly' in request.httprequest.query_string:
             user = request.env['res.users'].search(
@@ -80,30 +50,13 @@ class ResetPassword(AuthSignupHome):
             qcontext['token'] = partner.signup_token
             qcontext['name'] = partner.name
             qcontext['login'] = login
+            qcontext['birthday'] = partner.birthday
+        return result
 
-        if 'error' not in qcontext and request.httprequest.method == 'POST':
-            try:
-                if qcontext.get('token'):
-                    self.do_signup(qcontext)
-                    return super(AuthSignupHome, self).web_login(*args, **kw)
-                else:
-                    login = qcontext.get('login')
-                    assert login, "No login provided."
-                    request.env['res.users'].sudo().reset_password(login)
-                    qcontext['message'] = _(
-                        "An email has been sent with credentials to reset your password")
-            except SignupError:
-                qcontext['error'] = _("Could not reset your password")
-                _logger.exception('error when resetting password')
-            except Exception, e:
-                qcontext['error'] = e.message or e.name
-
-        return request.render('auth_signup.reset_password', qcontext)
 
     def do_signup(self, qcontext):
         values = {key: qcontext.get(key) for key in (
             'login', 'name', 'birthday', 'password')}
-        print 'o la ', qcontext.get('birthday')
         assert values.values(), "The form was not properly filled in."
         assert values.get('password') == qcontext.get(
             'confirm_password'), "Passwords do not match; please retype them."
